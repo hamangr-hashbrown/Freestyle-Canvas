@@ -65,6 +65,12 @@ console.log("This file last modified " + docMod); // generates message in javaSc
 		<button class="w3-button w3-flat-asbestos" onclick="clearCanvas()">Clear Canvas</button>
 	</div>
 	<!-- These make the buttons to press-->
+	<!--lines 69-102 contains the interactive controls panel that allows users to customize individual shapes on the canvas.
+		This panel provides sliders for adjusting position (X and Y coordinates) and size, as well as color pickers for fill and border colors.
+		Each control is wrapped in a label element for accessibility and clear labeling. The sliders use HTML5 range inputs with oninput event handlers
+		to trigger JavaScript functions that update the selected shape in real-time. The color pickers use HTML5 color inputs for easy color selection.
+		The panel is styled with inline CSS for a clean, bordered appearance with a light gray background to distinguish it from the rest of the page.
+	-->
 	<div style="margin-top: 30px; padding: 20px; border: 1px solid #ccc; background-color: #f9f9f9;">
 		<h3>Position, Size & Color Controls</h3>
 		<p style="color: #666; font-size: 14px;">Draw a shape first, then select it from the list below to adjust its properties.</p>
