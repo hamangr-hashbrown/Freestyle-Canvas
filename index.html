@@ -6,19 +6,21 @@ THIS CODE SHOULD NOT BE USED TO DIAGNOSE ANY KIND OF MEDICAL CONDITION.
  
  
 Authors in chronological order of contribution:
-Grayson
+Author 1
+Author 2
  
 Further Information:
 https://fri.cns.utexas.edu/community-outreach/high-school-research-initiative
  
 Research Educator:
-Ms. Koo
+Timothy Riedel
+triedel@utexas.edu
  
 Brief Description of Goal of Code:
-You can make a image with this code
+blah, blah, blah,
  
 Known Issues:
-They don't change in the z axis
+blah, blah, blah, blah
 
 References:	
 https://www.w3schools.com/w3css/default.asp
@@ -54,43 +56,255 @@ console.log("This file last modified " + docMod); // generates message in javaSc
 <div id="content" class="w3-container">
 	<p>
 	<br>	
-    <canvas id="myCanvas" width=360 height=450 style="border:1px solid #d3d3d3;"></canvas>
+    <canvas id="myCanvas" width=360 height=450 style="border:3px solid #333333;"></canvas>
+	<br>
+	<div style="margin-top: 20px;">
+		<button class="w3-button w3-flat-peter-river" onclick="drawCircle()">Draw Circle</button>
+		<button class="w3-button w3-flat-emerald" onclick="drawSquare()">Draw Square</button>
+		<button class="w3-button w3-flat-sun-flower" onclick="drawRectangle()">Draw Rectangle</button>
+		<button class="w3-button w3-flat-pomegranate" onclick="drawTriangle()">Draw Triangle</button>
+		<button class="w3-button w3-flat-asbestos" onclick="clearCanvas()">Clear Canvas</button>
+	</div>
+	
+	<div style="margin-top: 30px; padding: 20px; border: 1px solid #ccc; background-color: #f9f9f9;">
+		<h3>Position, Size & Color Controls</h3>
+		<p style="color: #666; font-size: 14px;">Draw a shape first, then select it from the list below to adjust its properties.</p>
+		
+		<label style="display: block; margin-bottom: 15px;">
+			<strong>X Position (Left to Right):</strong> <span id="xValue">180</span>
+			<br>
+			<input type="range" id="xSlider" min="0" max="360" value="180" style="width: 300px;" oninput="updateSelectedShapePosition()">
+		</label>
+		
+		<label style="display: block; margin-bottom: 15px;">
+			<strong>Y Position (Up and Down):</strong> <span id="yValue">225</span>
+			<br>
+			<input type="range" id="ySlider" min="0" max="450" value="225" style="width: 300px;" oninput="updateSelectedShapePosition()">
+		</label>
+		
+		<label style="display: block; margin-bottom: 15px;">
+			<strong>Size:</strong> <span id="sizeValue">50</span>
+			<br>
+			<input type="range" id="sizeSlider" min="20" max="150" value="50" style="width: 300px;" oninput="updateSelectedShapeSize()">
+		</label>
+		
+		<label style="display: block; margin-bottom: 15px;">
+			<strong>Fill Color:</strong>
+			<br>
+			<input type="color" id="fillColor" value="#3498db" style="width: 60px; height: 40px; cursor: pointer;" oninput="updateSelectedShapeColor()">
+		</label>
+		
+		<label style="display: block; margin-bottom: 15px;">
+			<strong>Border Color:</strong>
+			<br>
+			<input type="color" id="borderColor" value="#2c3e50" style="width: 60px; height: 40px; cursor: pointer;" oninput="updateSelectedShapeColor()">
+		</label>
+		
+		<div style="margin-top: 30px; padding: 15px; border: 1px solid #ddd; background-color: white;">
+			<h4>Shapes on Canvas <span id="shapeCount">(0)</span></h4>
+			<div id="shapesList" style="display: flex; flex-wrap: wrap; gap: 10px;">
+				<!-- Shape buttons will appear here -->
+			</div>
+		</div>
+	</div>
       
-	<script> /* This script initiates the canvas and puts the text on the canvas "myCanvas" */
+	<script> /* This script initiates the canvas and drawing functions */
 				
 		var canvas = document.getElementById('myCanvas');
         var context = canvas.getContext("2d");
         context.font = '20pt Calibri';
         context.fillStyle = "black";
+        context.clearRect(0, 0, canvas.width, canvas.height);
+		
+		// Global variables
+		var positionX = 180;
+		var positionY = 225;
+		var shapeSize = 50;
+		var fillColor = '#3498db';
+		var borderColor = '#2c3e50';
+		var shapes = []; // Array to store all shapes with their individual properties
+		var selectedShapeIndex = -1; // Index of currently selected shape
 
-context.clearRect(0, 0, canvas.width, canvas.height);
+		// Function to update shape list display
+		function updateShapesList() {
+			const shapesList = document.getElementById('shapesList');
+			shapesList.innerHTML = '';
+			document.getElementById('shapeCount').textContent = `(${shapes.length})`;
+			
+			shapes.forEach((shape, index) => {
+				const btn = document.createElement('button');
+				btn.className = 'w3-button ' + (selectedShapeIndex === index ? 'w3-flat-pomegranate' : 'w3-flat-concrete');
+				btn.textContent = `${shape.type.charAt(0).toUpperCase() + shape.type.slice(1)} ${index + 1}`;
+				btn.onclick = () => selectShape(index);
+				
+				const deleteBtn = document.createElement('button');
+				deleteBtn.className = 'w3-button w3-flat-alizarin';
+				deleteBtn.textContent = 'X';
+				deleteBtn.style.marginLeft = '5px';
+				deleteBtn.onclick = (e) => {
+					e.stopPropagation();
+					deleteShape(index);
+				};
+				
+				const container = document.createElement('div');
+				container.style.display = 'flex';
+				container.appendChild(btn);
+				container.appendChild(deleteBtn);
+				shapesList.appendChild(container);
+			});
+		}
 
+		// Function to select a shape
+		function selectShape(index) {
+			selectedShapeIndex = index;
+			const shape = shapes[index];
+			positionX = shape.x;
+			positionY = shape.y;
+			shapeSize = shape.size;
+			fillColor = shape.fillColor;
+			borderColor = shape.borderColor;
+			document.getElementById('xSlider').value = positionX;
+			document.getElementById('ySlider').value = positionY;
+			document.getElementById('sizeSlider').value = shapeSize;
+			document.getElementById('fillColor').value = fillColor;
+			document.getElementById('borderColor').value = borderColor;
+			document.getElementById('xValue').textContent = positionX;
+			document.getElementById('yValue').textContent = positionY;
+			document.getElementById('sizeValue').textContent = shapeSize;
+			updateShapesList();
+		}
 
-  // --- parameters ---
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const scale = 120;
-  const lineWidthT = 6;
+		// Function to delete a shape
+		function deleteShape(index) {
+			shapes.splice(index, 1);
+			if (selectedShapeIndex >= shapes.length) {
+				selectedShapeIndex = -1;
+			}
+			redrawAllShapes();
+			updateShapesList();
+		}
 
-  // --- draw the Letter U ---
-  context.strokeStyle = "#BF5700"; // burnt orange
-  context.lineWidth = 10;
-  context.beginPath();
-  context.moveTo(cx - scale / 2, cy - scale / 1.4); // left vertical
-  context.lineTo(cx - scale / 2, cy + scale / 2);   // down
-  context.lineTo(cx + scale / 2, cy + scale / 2);   // bottom flat
-  context.lineTo(cx + scale / 2, cy - scale / 1.4); // up
-  context.stroke();
+		// Function to update position for new shapes
+		function updatePosition() {
+			positionX = parseInt(document.getElementById('xSlider').value);
+			positionY = parseInt(document.getElementById('ySlider').value);
+			document.getElementById('xValue').textContent = positionX;
+			document.getElementById('yValue').textContent = positionY;
+		}
 
-  // --- draw the T nested inside ---
-  context.beginPath();
-  // top bar of T
-  context.moveTo(cx - scale / 1.2, cy - scale / 4.2);
-  context.lineTo(cx + scale / 1.2, cy - scale / 4.2);
-  // vertical stem of T
-  context.moveTo(cx, cy - scale / 4.2);
-  context.lineTo(cx, cy + scale / 1);
-  context.stroke();
+		// Function to update selected shape's position in real-time
+		function updateSelectedShapePosition() {
+			if (selectedShapeIndex >= 0 && selectedShapeIndex < shapes.length) {
+				shapes[selectedShapeIndex].x = parseInt(document.getElementById('xSlider').value);
+				shapes[selectedShapeIndex].y = parseInt(document.getElementById('ySlider').value);
+				document.getElementById('xValue').textContent = shapes[selectedShapeIndex].x;
+				document.getElementById('yValue').textContent = shapes[selectedShapeIndex].y;
+				redrawAllShapes();
+			}
+		}
+
+		// Function to update selected shape's size in real-time
+		function updateSelectedShapeSize() {
+			if (selectedShapeIndex >= 0 && selectedShapeIndex < shapes.length) {
+				shapes[selectedShapeIndex].size = parseInt(document.getElementById('sizeSlider').value);
+				document.getElementById('sizeValue').textContent = shapes[selectedShapeIndex].size;
+				redrawAllShapes();
+			}
+		}
+
+		// Function to update selected shape's color in real-time
+		function updateSelectedShapeColor() {
+			if (selectedShapeIndex >= 0 && selectedShapeIndex < shapes.length) {
+				shapes[selectedShapeIndex].fillColor = document.getElementById('fillColor').value;
+				shapes[selectedShapeIndex].borderColor = document.getElementById('borderColor').value;
+				redrawAllShapes();
+			}
+		}
+
+		// Function to redraw all shapes on the canvas
+		function redrawAllShapes() {
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			
+			// Draw each shape with its own properties
+			for (let i = 0; i < shapes.length; i++) {
+				const shape = shapes[i];
+				drawShapeAt(shape.type, shape.x, shape.y, shape.size, shape.fillColor, shape.borderColor);
+			}
+		}
+
+		// Function to draw a shape at specific x, y coordinates with size and colors
+		function drawShapeAt(type, x, y, size, fillColor, borderColor) {
+			if (type === 'circle') {
+				context.fillStyle = fillColor;
+				context.beginPath();
+				context.arc(x, y, size, 0, 2 * Math.PI);
+				context.fill();
+				context.strokeStyle = borderColor;
+				context.lineWidth = 2;
+				context.stroke();
+			} else if (type === 'square') {
+				context.fillStyle = fillColor;
+				context.fillRect(x - size / 2, y - size / 2, size, size);
+				context.strokeStyle = borderColor;
+				context.lineWidth = 2;
+				context.strokeRect(x - size / 2, y - size / 2, size, size);
+			} else if (type === 'rectangle') {
+				context.fillStyle = fillColor;
+				const width = size * 1.5;
+				const height = size * 0.8;
+				context.fillRect(x - width / 2, y - height / 2, width, height);
+				context.strokeStyle = borderColor;
+				context.lineWidth = 2;
+				context.strokeRect(x - width / 2, y - height / 2, width, height);
+			} else if (type === 'triangle') {
+				context.fillStyle = fillColor;
+				context.beginPath();
+				context.moveTo(x, y - size / 2); // top point
+				context.lineTo(x + size, y + size / 2); // bottom right
+				context.lineTo(x - size, y + size / 2); // bottom left
+				context.closePath();
+				context.fill();
+				context.strokeStyle = borderColor;
+				context.lineWidth = 2;
+				context.stroke();
+			}
+		}
+
+		// Function to add and draw a circle
+		function drawCircle() {
+			shapes.push({ type: 'circle', x: positionX, y: positionY, size: shapeSize, fillColor: fillColor, borderColor: borderColor });
+			redrawAllShapes();
+			updateShapesList();
+		}
+
+		// Function to add and draw a square
+		function drawSquare() {
+			shapes.push({ type: 'square', x: positionX, y: positionY, size: shapeSize, fillColor: fillColor, borderColor: borderColor });
+			redrawAllShapes();
+			updateShapesList();
+		}
+
+		// Function to add and draw a rectangle
+		function drawRectangle() {
+			shapes.push({ type: 'rectangle', x: positionX, y: positionY, size: shapeSize, fillColor: fillColor, borderColor: borderColor });
+			redrawAllShapes();
+			updateShapesList();
+		}
+
+		// Function to add and draw a triangle
+		function drawTriangle() {
+			shapes.push({ type: 'triangle', x: positionX, y: positionY, size: shapeSize, fillColor: fillColor, borderColor: borderColor });
+			redrawAllShapes();
+			updateShapesList();
+		}
+
+		// Function to clear the canvas
+		function clearCanvas() {
+			shapes = [];
+			selectedShapeIndex = -1;
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			updateShapesList();
+		}
     </script>
 		
 	</p>
